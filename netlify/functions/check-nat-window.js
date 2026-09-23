@@ -65,7 +65,5 @@ export default async (req) => {
 };
 
 export const config = {
-  path: "/api/nat-window",
-  method: "POST",
   schedule: "0 13 * * *",
 };

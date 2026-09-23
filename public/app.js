@@ -494,7 +494,7 @@ document.querySelector("#btn-check-nat").addEventListener("click", async (event)
   button.disabled = true;
   setResult("result-nat", "info", "Checking…");
   try {
-    const data = await api("/api/nat-window", { method: "POST", body: {} });
+    const data = await api("/.netlify/functions/check-nat-window", { method: "POST", body: {} });
     if (data.flagged === 0) {
       setResult("result-nat", "ok", "Nothing due in the next 30 days.");
     } else {

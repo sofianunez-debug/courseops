@@ -45,10 +45,15 @@ for (const name of functionNames) {
   const methods = []
     .concat(mod.config?.method || ["GET", "POST"])
     .map((method) => method.toUpperCase());
-  if (!mod.config?.path || typeof mod.default !== "function") {
-    throw new Error(`${name} is missing a path or handler`);
+  if (typeof mod.default !== "function") {
+    throw new Error(`${name} is missing a handler`);
   }
-  routes.push({ path: mod.config.path, methods, handler: mod.default });
+  const paths = new Set();
+  if (mod.config?.path) paths.add(mod.config.path);
+  paths.add(`/.netlify/functions/${name.replace(/\.js$/, "")}`);
+  for (const routePath of paths) {
+    routes.push({ path: routePath, methods, handler: mod.default });
+  }
 }
 
 const types = {
