@@ -1,0 +1,22 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[dev]
+  framework = "#static"
+  port = 4177
+  publish = "public"
+  autoLaunch = false
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["googleapis"]
+  included_files = ["data/**"]
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "same-origin"
+    X-Robots-Tag = "noindex"

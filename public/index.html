@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Course Ops Staffing Desk</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="gate" class="gate">
+    <form id="gate-form" class="gate-card">
+      <p class="eyebrow">Course Ops · Live stream</p>
+      <h1>Staffing desk</h1>
+      <p class="lede">Enter the access key to send offers, sub requests, and ICA reminders.</p>
+      <label for="access-key">Access key</label>
+      <input id="access-key" name="access-key" type="password" autocomplete="current-password" required />
+      <p id="gate-hint" class="hint"></p>
+      <button type="submit">Unlock desk</button>
+      <p id="gate-error" class="result error" hidden></p>
+    </form>
+  </div>
+
+  <div id="app" hidden>
+    <header class="top">
+      <div>
+        <p class="eyebrow">Course Ops · Live stream</p>
+        <h1>Staffing desk</h1>
+      </div>
+      <div class="top-actions">
+        <span id="mode-badge" class="badge">Loading</span>
+        <button id="btn-sign-out" class="ghost" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <div id="banner" class="banner" hidden></div>
+    <p id="load-error" class="banner error" hidden></p>
+
+    <main id="desk">
+      <section class="stats" aria-label="Queue counts">
+        <button type="button" class="stat" data-jump="offers">
+          <span id="stat-offers" class="stat-value">–</span>
+          <span class="stat-label">Offer emails</span>
+        </button>
+        <button type="button" class="stat" data-jump="subs">
+          <span id="stat-subs" class="stat-value">–</span>
+          <span class="stat-label">Open subs</span>
+        </button>
+        <button type="button" class="stat" data-jump="ica">
+          <span id="stat-ica" class="stat-value">–</span>
+          <span class="stat-label">ICA holds</span>
+        </button>
+        <button type="button" class="stat" data-jump="nat">
+          <span id="stat-nat" class="stat-value">–</span>
+          <span class="stat-label">NAT due</span>
+        </button>
+      </section>
+
+      <div class="grid">
+        <section id="offers" class="card">
+          <div class="card-head">
+            <h2>Offers to send</h2>
+            <p>One email per tutor for every Working-tab row marked Offer. Matching who gets the offer stays manual.</p>
+          </div>
+          <p id="offer-summary" class="summary">Loading the offer queue…</p>
+          <div id="offer-list" class="stack"></div>
+          <div class="card-actions">
+            <label id="simulate-label" class="check" hidden>
+              <input id="simulate-failure" type="checkbox" />
+              Simulate a failure on the first email
+            </label>
+            <button id="btn-send-offers" type="button" disabled>Send offers</button>
+          </div>
+          <p id="result-offers" class="result" aria-live="polite"></p>
+        </section>
+
+        <section id="nat" class="card">
+          <div class="card-head">
+            <h2>30-day NAT window</h2>
+            <p>Accepted classes that still need a placement. Creating the placement stays manual. This check also runs every day at 8:00am Central.</p>
+          </div>
+          <div id="nat-list" class="stack">Loading classes…</div>
+          <div class="card-actions">
+            <button id="btn-check-nat" type="button">Check now</button>
+          </div>
+          <p id="result-nat" class="result" aria-live="polite"></p>
+        </section>
+
+        <section id="subs" class="card">
+          <div class="card-head">
+            <h2>Sub requests</h2>
+            <p>Open rows on the Subs tab. Pick the tutor yourself, then send the coverage email.</p>
+          </div>
+          <div id="sub-list" class="stack">Loading sub requests…</div>
+        </section>
+
+        <section id="ica" class="card">
+          <div class="card-head">
+            <h2>ICA reminders</h2>
+            <p>Tutors parked at “Not in progress” until the live stream ICA is renewed.</p>
+          </div>
+          <div id="ica-list" class="stack">Loading ICA holds…</div>
+        </section>
+
+        <section id="inquiry" class="card wide">
+          <div class="card-head">
+            <h2>General inquiries</h2>
+            <p>Canned reply for “do you have any opportunities?” so nobody is copy-pasting the same paragraph.</p>
+          </div>
+          <form id="inquiry-form" class="inline-form">
+            <label class="grow" for="inquiry-email">Tutor email</label>
+            <input id="inquiry-email" name="email" type="email" placeholder="tutor@email.com" required />
+            <button type="submit">Send reply</button>
+          </form>
+          <details class="preview-block">
+            <summary>Reply that will be sent</summary>
+            <pre id="inquiry-template" class="email-body"></pre>
+          </details>
+          <p id="result-inquiry" class="result" aria-live="polite"></p>
+        </section>
+
+        <section id="activity" class="card wide">
+          <div class="card-head">
+            <h2>Activity log</h2>
+            <p>Sends, skipped sheet updates, and failures. In live mode this is the Activity Log tab; failures also post to Slack when a webhook is set.</p>
+          </div>
+          <div id="activity-list" class="table-wrap">Loading activity…</div>
+        </section>
+      </div>
+
+      <footer class="foot">
+        <p>Tutor matching, VTWA calendar checks, and placement creation stay manual.</p>
+        <details>
+          <summary>Expected sheet columns</summary>
+          <div id="column-help" class="column-help"></div>
+        </details>
+      </footer>
+    </main>
+  </div>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

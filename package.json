@@ -1,0 +1,21 @@
+{
+  "name": "course-staffing-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Course Ops desk for live-stream staffing: offer emails, sub requests, ICA reminders, inquiry replies, and 30-day placement flagging.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "netlify": "netlify dev --offline --port 4177",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "googleapis": "^140.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^23.9.1"
+  }
+}
