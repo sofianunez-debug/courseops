@@ -1,50 +1,27 @@
-import { assertAccess } from "./_shared/auth.js";
-import { isPreviewMode, workingTab } from "./_shared/env.js";
-import { json, methodNotAllowed, readJson } from "./_shared/http.js";
+import { json, methodNotAllowed } from "./_shared/http.js";
 import { logActivity } from "./_shared/log.js";
-import { sendEmail } from "./_shared/mail.js";
-import { assertColumns, readTab, updateFields } from "./_shared/store.js";
-import { STATUS } from "./_shared/schema.js";
-import { buildOfferBatches, deliverOfferBatches } from "./_shared/workflow.js";
+import { requireOperator } from "./_shared/operator.js";
+import { postSheet } from "./_shared/sheet-client.js";
 
 export default async (req) => {
   if (req.method !== "POST") return methodNotAllowed();
-  const denied = assertAccess(req);
-  if (denied) return denied;
-
+  const auth = await requireOperator();
+  if (auth.error) return auth.error;
   try {
-    const body = await readJson(req);
-    const tab = workingTab();
-    const { records, columns } = await readTab(tab);
-    assertColumns(tab, columns, ["className", "email", "status"]);
-    const { batches, skipped } = buildOfferBatches(records);
-    let simulated = false;
-    const result = await deliverOfferBatches(batches, {
-      async send(message, batch) {
-        if (isPreviewMode() && body.simulateFailure && !simulated) {
-          simulated = true;
-          const error = new Error(
-            `Simulated failure before emailing ${batch.tutorName || batch.email}. Status was left as Offer.`
-          );
-          throw error;
-        }
-        return sendEmail(message);
-      },
-      markWaiting(batch) {
-        return updateFields(
-          tab,
-          batch.classes.map((item) => ({
-            rowNumber: item.rowNumber,
-            field: "status",
-            value: STATUS.waiting,
-          }))
-        );
-      },
-      log: logActivity,
+    const result = await postSheet("sendOffers");
+    const count = Number(result.sent) || 0;
+    await logActivity({
+      action: "send-offers",
+      status: "ok",
+      detail: result.message || `Sent ${count}`,
     });
-    return json({ ...result, skipped });
+    return json({
+      sent: Array.from({ length: count }, (_item, index) => ({ index })),
+      failed: [],
+      message: result.message || "",
+    });
   } catch (err) {
-    console.error(err);
+    await logActivity({ action: "send-offers", status: "failed", error: err.message });
     return json({ error: err.message || "Could not send offers" }, err.status || 500);
   }
 };

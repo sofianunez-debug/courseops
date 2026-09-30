@@ -1,8 +1,33 @@
-# Course Ops Staffing Desk
+# Course Ops
 
-Dashboard for the copy-and-paste parts of live-stream staffing. It sends grouped offer emails, sub-request emails, ICA renewal reminders, and the general-inquiry reply, and it flags accepted classes that need a placement within 30 days.
+Staffing desk for group live-stream classes. Sign in with a Varsity Tutors Google account. The person works in the app. The Google Sheet is the data store. Make.com sends every email.
 
-Tutor matching, VTWA calendar checks, and placement (NAT) creation stay manual.
+Tutor matching is a suggestion the person confirms. The VTWA calendar is not checked, and the placement is not created here.
+
+## What the desk does
+
+- Shows Offered rows, sub requests, ICA holds, and the 30-day NAT window from the published workbook.
+- Suggests a tutor for a class or sub request that has no email, using the instructor list and courses people already teach. The reason is a subject match. When `AI_ENABLED=yes`, Netlify AI (`gpt-4o-mini`) rewrites that reason.
+- **Assign** writes the tutor name and email back to that sheet row.
+- **Test mail goes to** saves an address on the app. Test sends go to that address. Tutor emails in the sheet stay as they are.
+- **Send test offers** asks the sheet script to post Offered rows to Make. The spreadsheet menu is not required.
+
+## Sheet script
+
+Paste both files into one Apps Script project:
+
+- `scripts/sheet-email/Code.gs` owns `onOpen` and the send menus.
+- `scripts/sheet-sync/Code.gs` publishes the workbook and receives writes from the app.
+
+Deploy the web app as **Execute as me**, **Who has access: Anyone**. Use the `https://script.google.com/macros/s/.../exec` URL. Put that URL in `SHEET_WEBAPP_URL` and the same secret in `SHEET_PUBLISH_SECRET` and the script property `PUBLISH_SECRET`.
+
+Keep those variables on a **preview** deploy while testing. Leave production Netlify variables on the live sheet until the test is accepted.
+
+The live working sheet stays untouched. Testing uses a copy whose title contains “Copy of” or “Test”, with `TEST_COPY=yes`. That copy publishes `data/workbook-test.json` and does not call the live Make webhooks. It sends only when `ALLOW_SEND_FROM_COPY=yes` and `OFFER_WEBHOOK_URL` is the Make clone:
+
+`https://hook.us1.make.celonis.com/oxwi9afa54a7cg61e2aqoqq8tl7uql4e`
+
+The live scenario “LS/GC - Courses Staffing Emails” stays on. Do not point the test copy at its webhooks.
 
 ## Run it locally
 
@@ -12,66 +37,4 @@ npm test
 npm run dev
 ```
 
-Open [http://127.0.0.1:4177](http://127.0.0.1:4177). The local access key is `preview`.
-
-Without Google credentials the desk runs in **preview mode**:
-
-- Sample classes, subs, and instructors load from a local workbook at `data/store.json` (created on first use).
-- Buttons do the real status updates on that workbook.
-- Emails are not sent. The full text is stored in the activity log.
-- Check **Simulate a failure on the first email** to see a partial offer batch: later tutors still send, and the failed tutor stays marked `Offer`.
-- **Reset sample data** restores the original queue.
-
-`npm run netlify` starts the same site through `netlify dev --offline` on port 4177.
-
-## What the buttons do
-
-| Action | Sheet change | Email |
-|---|---|---|
-| Send offers | Each included row moves from `Offer` to `Waiting for response` only after that tutor's email succeeds | One email per tutor, listing every offered class |
-| Send sub request | Subs row becomes `Waiting for response`, note records who was asked | Single-session coverage email |
-| Send ICA reminder | Note is stamped; status stays `Not in progress` | Renewal reminder |
-| Send inquiry reply | None | Canned “thanks for your interest” reply |
-| Check NAT window | None | Optional Slack post in live mode |
-
-If an email fails, that row is left unchanged and the rest of the batch continues. A transient mail error (timeout, rate limit, 5xx) is retried once. If the email succeeds and the sheet update fails, the log is marked `partial` and the desk does not send that email again.
-
-Every send and failure is appended to the **Activity Log** tab. In live mode, failures also post to Slack when `SLACK_WEBHOOK_URL` is set. The daily NAT check runs at 13:00 UTC (8:00am Central).
-
-## Sheet columns
-
-Headers are matched by name, so column order can change. The first matching header wins.
-
-**Working:** Class Name, Schedule, Start Date, Days Until Start, Duration, Subject, Tutor Name, Tutor Email, Status, Notes
-
-**Subs:** Class Name, Date, Time, Duration, Status, Note
-
-**Instructors:** Tutor Name, Tutor Email, Subjects, ICA Status
-
-**Activity Log:** Timestamp, Action, Status, Recipient, Detail, Error
-
-The Activity Log tab is created on the first send if it is missing. These aliases also work: `Course Name`, `Instructor Name`, `Instructor Email`, `Offer Status`, `Meeting Time`.
-
-Status values the desk looks for, exactly:
-
-- Working: `Offer`, `Waiting for response`, `Accepted`, `Not in progress`, `Declined`
-- Subs: `Available` or a blank status for open requests
-
-`Days Until Start` is used when it is filled. Otherwise the desk counts calendar days from `Start Date` in America/Chicago.
-
-## Connect the real sheet and Gmail
-
-1. Copy `.env.example` to `.env` for local live mode, or set the same variables in Netlify (Site configuration → Environment variables). Do not commit secrets.
-2. Create or reuse a Google Cloud project. Enable the **Google Sheets API** and the **Gmail API**.
-3. Create a service account and share the staffing spreadsheet with its email as **Editor**.
-4. A Google Workspace admin authorizes the service account's Client ID for domain-wide delegation on `https://www.googleapis.com/auth/gmail.send`, so mail can send as `grouptutors@varsitytutors.com`.
-5. Put the service-account JSON on one line in `GOOGLE_SERVICE_ACCOUNT_JSON`:
-
-   ```bash
-   node -e "console.log(JSON.stringify(require('./service-account.json')))"
-   ```
-
-6. Set `SHEET_ID` from the spreadsheet URL. Leave `DATA_MODE` unset. The desk switches to live mode when both the sheet ID and the service account JSON are present. Set `DATA_MODE=preview` to force the sample workbook, or `DATA_MODE=live` to refuse to start without credentials.
-7. Set `DASHBOARD_ACCESS_KEY` to a long random value before deploying. The desk asks for it once and stores it in the browser until sign-out.
-
-`netlify.toml` publishes `public/` and the functions in `netlify/functions/`. The NAT check is scheduled on `check-nat-window` with cron `0 13 * * *`.
+Open [http://127.0.0.1:4177](http://127.0.0.1:4177). Google sign-in works on the deployed site.

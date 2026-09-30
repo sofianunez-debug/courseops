@@ -1,17 +1,24 @@
 [build]
-  publish = "public"
+  command = "npm run build"
+  publish = "dist"
   functions = "netlify/functions"
 
 [dev]
-  framework = "#static"
-  port = 4177
-  publish = "public"
+  command = "npm run dev"
+  targetPort = 4177
+  port = 8888
+  publish = "dist"
   autoLaunch = false
+  framework = "vite"
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["googleapis"]
   included_files = ["data/**"]
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [[headers]]
   for = "/*"

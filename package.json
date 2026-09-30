@@ -3,19 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Course Ops desk for live-stream staffing: offer emails, sub requests, ICA reminders, inquiry replies, and 30-day placement flagging.",
+  "description": "Course Ops desk for live-stream staffing. The sheet stores the rows. Make.com sends the email.",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "dev": "node scripts/dev-server.mjs",
-    "netlify": "netlify dev --offline --port 4177",
+    "dev": "vite --host 127.0.0.1 --port 4177",
+    "build": "vite build",
+    "netlify": "netlify dev --port 4177",
     "test": "node --test"
   },
   "dependencies": {
-    "googleapis": "^140.0.0"
+    "@netlify/identity": "^2.0.0",
+    "openai": "^6.8.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "netlify-cli": "^23.9.1"
+    "@vitejs/plugin-react": "^5.0.4",
+    "netlify-cli": "^23.9.1",
+    "vite": "^7.1.5"
   }
 }
