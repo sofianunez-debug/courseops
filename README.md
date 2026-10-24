@@ -1,5 +1,35 @@
 # Course Ops
 
+## Assignment and scheduling dashboard
+
+The desk in this app is the Course Assignment & Scheduling Operations Dashboard for Varsity Tutors Group Courses. Offer email is signed by Sofia Nunez:
+
+```
+Best regards,
+Sofia N & The Group Courses Operations Team
+```
+
+```bash
+npm install
+npm test
+npm run typecheck
+npm run dev
+```
+
+Open [http://127.0.0.1:4177](http://127.0.0.1:4177). The roster and instructor directory persist in `localStorage` under `vt.groupCourses.opsDashboard.v1`. **Reset to sample data** restores the seed.
+
+**Refresh** tries remote sources in this order and keeps the local roster when none succeed:
+
+1. Supabase, when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set. Read `courses` and `instructors`. Column shapes are in `.env.example`. A failed read shows a toast and does not wipe local edits. No remote tables are created by this app.
+2. Starburst Galaxy through `GET /api/starburst-roster`. The browser does not hold Galaxy credentials. The function reads `Netlify.env` and returns **not configured** until a bronze, silver, or gold courses table has been verified. It does not invent rows and it does not query `raw_sb_*` or `raw_redshift`. `npm run dev` serves the UI only. `npm run netlify` also runs the function.
+3. A published Google Sheet CSV when `VITE_GOOGLE_SHEET_CSV_URL` is set, using the same parser as **Import CSV**. Pasted CSV or TSV import is always available and merges into the roster.
+
+Scheduled teaching hours are duration times the number of dates from start through end whose weekday is one of the course meeting days.
+
+The Netlify functions and sheet scripts below remain for the live-stream staffing mail desk.
+
+## Sheet staffing desk
+
 Staffing desk for group live-stream classes. Sign in with a Varsity Tutors Google account. The person works in the app. The Google Sheet is the data store. Make.com sends every email.
 
 Tutor matching is a suggestion the person confirms. The VTWA calendar is not checked, and the placement is not created here.
