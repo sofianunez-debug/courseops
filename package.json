@@ -3,25 +3,34 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Course Ops desk for live-stream staffing. The sheet stores the rows. Make.com sends the email.",
+  "description": "Course Assignment & Scheduling Operations Dashboard for Varsity Tutors Group Courses.",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 4177",
-    "build": "vite build",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "netlify": "netlify dev --port 4177",
-    "test": "node --test"
+    "test": "node --test test/*.js && ./node_modules/esbuild/bin/esbuild test/dashboard.test.ts --bundle --platform=node --format=esm --outfile=/tmp/course-ops-dashboard.test.mjs && node --test /tmp/course-ops-dashboard.test.mjs"
   },
   "dependencies": {
     "@netlify/identity": "^2.0.0",
+    "@supabase/supabase-js": "^2.118.0",
+    "lucide-react": "^1.61.0",
     "openai": "^6.8.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@netlify/functions": "^6.0.3",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.0.4",
     "netlify-cli": "^23.9.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
     "vite": "^7.1.5"
   }
 }
